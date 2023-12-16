@@ -22,6 +22,29 @@
 		@apply z-10 sticky top-0 flex items-center gap-12 w-full px-[5vw] py-5 h-[80px] border-b border-grey bg-white;
 	}
 
+	.show {
+		@apply opacity-100 pointer-events-auto duration-100;
+	}
+	.hide {
+		@apply opacity-0 pointer-events-none duration-100;
+	}
+
+	.link {
+		@apply text-dark-grey hover:text-black hover:bg-grey p-3 px-4 block opacity-75;
+	}
+
+	.btn-dark {
+		@apply whitespace-nowrap bg-black text-white rounded-full py-3 px-6 text-xl capitalize hover:bg-opacity-80;
+	}
+
+	.btn-light {
+		@apply btn-dark bg-grey text-black;
+	}
+
+	.h-cover {
+		@apply min-h-[calc(100vh-80px)];
+	}
+
 	i {
 		@apply mt-0.5;
 	}
@@ -38,20 +61,8 @@
 		@apply w-full h-full object-cover;
 	}
 
-	.h-cover {
-		@apply min-h-[calc(100vh-80px)];
-	}
-
 	.center {
 		@apply block mx-auto;
-	}
-
-	.btn-dark {
-		@apply whitespace-nowrap bg-black text-white rounded-full py-3 px-6 text-xl capitalize hover:bg-opacity-80;
-	}
-
-	.btn-light {
-		@apply btn-dark bg-grey text-black;
 	}
 
 	.input-box {
@@ -65,18 +76,6 @@
 
 	.input-icon {
 		@apply absolute left-4 top-1/2 -translate-y-1/2;
-	}
-
-	.link {
-		@apply text-dark-grey hover:text-black hover:bg-grey p-3 px-4 block opacity-75;
-	}
-
-	.hide {
-		@apply opacity-0 pointer-events-none duration-100;
-	}
-
-	.show {
-		@apply opacity-100 pointer-events-auto;
 	}
 
 	.sidebar-link {
