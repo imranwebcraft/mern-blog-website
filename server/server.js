@@ -4,6 +4,7 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
+import cors from 'cors';
 
 // Schema below
 import User from './Schema/User.js';
@@ -14,6 +15,7 @@ const port = process.env.PORT || 5000;
 // Server Variable
 const server = express();
 server.use(express.json());
+server.use(cors());
 
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; //for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // for password
