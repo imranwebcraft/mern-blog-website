@@ -5,6 +5,7 @@ import googleIcon from '../imgs/google.png';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { storeInSession } from '../common/session';
 
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; //for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // for password
@@ -16,7 +17,7 @@ const UserAuthForm = ({ type }) => {
 		axios
 			.post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
 			.then((res) => {
-				toast.error(res.data.status);
+				storeInSession('user', res.data.access_token);
 			})
 			.catch((err) => {
 				toast.error(err.response.data.message);
