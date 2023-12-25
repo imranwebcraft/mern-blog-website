@@ -5,9 +5,17 @@ import bcrypt from 'bcrypt';
 import { nanoid } from 'nanoid';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import admin from 'firebase-admin';
+import { getAuth } from 'firebase-admin/auth';
 
 // Schema below
 import User from './Schema/User.js';
+
+// Firebase admin
+import serviceAccount from './react-blog-website-1b700-firebase-adminsdk-rv7hd-63c3026a3e.json' assert { type: 'json' };
+admin.initializeApp({
+	credential: admin.credential.cert(serviceAccount),
+});
 
 // Port
 const port = process.env.PORT || 5000;
@@ -99,23 +107,89 @@ server.post('/signin', async (req, res) => {
 		if (!user) {
 			return res.status(404).json({ error: 'Email not found' });
 		}
-		// Check the pass
-		bcrypt.compare(password, user.personal_info.password, (err, result) => {
-			if (err) {
-				return res.status(403).json({
-					error: 'error occur while login, please try again after sometimes',
-				});
-			}
-			if (!result) {
-				return res.status(200).json({ status: 'Incorrect Password' });
-			}
-			if (result) {
-				return res.status(200).json(formatDatatoSend(user));
-			}
-		});
+
+		if (!user.google_auth) {
+			// Check the pass
+			bcrypt.compare(password, user.personal_info.password, (err, result) => {
+				if (err) {
+					return res.status(403).json({
+						error: 'error occur while login, please try again after sometimes',
+					});
+				}
+				if (!result) {
+					return res.status(200).json({ status: 'Incorrect Password' });
+				}
+				if (result) {
+					return res.status(200).json(formatDatatoSend(user));
+				}
+			});
+		} else {
+			return res
+				.status(200)
+				.json({ error: 'Account create using google auth' });
+		}
 	} catch (err) {
 		return res.status(500).json({ error: 'Internal Server Error' });
 	}
+});
+
+server.post('/google-auth', async (req, res) => {
+	let { access_token } = req.body;
+	getAuth()
+		.verifyIdToken(access_token)
+		.then(async (decodedUser) => {
+			const { name, email, picture } = decodedUser;
+
+			// Search if any user exist with this email address who sign in with email and password
+			let user = await User.findOne({ 'personal_info.email': email })
+				.select(
+					'personal_info.fullname personal_info.username personal_info.profile_img google_auth'
+				)
+				.then((u) => {
+					return u || null;
+				})
+				.catch((err) => {
+					console.log(err.message);
+				});
+
+			//khuje paici + google auth false, thats mean se email pass diye account korcilo tai take email pass diye log in korte bola holo
+			if (user) {
+				if (!user.google_auth) {
+					return res
+						.status(403)
+						.json({ error: 'please sign in with email and password' });
+				}
+				// Se fresh user, new google auth diye sign in korar chesta kortece, so go proceed
+			} else {
+				//Sign Up
+				// Genarate a username for this user
+				let username = await generateUsername(email);
+				user = new User({
+					personal_info: {
+						fullname: name,
+						email,
+						username,
+						profile_img: picture.replace('s96-c', 's384-c'),
+					},
+					google_auth: true,
+				});
+
+				user
+					.save()
+					.then((savedUser) => {
+						user = savedUser;
+					})
+					.catch((err) => {
+						err.message;
+					});
+			}
+			return res.status(200).json(formatDatatoSend(user));
+		})
+		.catch((err) =>
+			res
+				.status(500)
+				.json({ error: 'Unable to verify the access token by firebase' })
+		);
 });
 
 server.get('/', (req, res) => {
@@ -142,7 +216,7 @@ server.listen(port, () => {
 // Connect to the database
 const main = async () => {
 	await mongoose.connect(process.env.DB_LOCATION);
-	console.log('Connected to the datbase');
+	console.log('Connected to the database');
 };
 
 main();

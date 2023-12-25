@@ -21,10 +21,11 @@ const App = () => {
 		<>
 			<UserContext.Provider value={{ userAuth, setUserAuth }}>
 				<Toaster />
+				{/* Parent */}
 				<Routes>
-					{/* Parent */}
+					{/* Children */}
+					<Route path="/editor" element={<h1>Editor page</h1>} />
 					<Route path="/" element={<Navbar />}>
-						{/* Children */}
 						<Route path="signin" element={<UserAuthForm type="signin" />} />
 						<Route path="signup" element={<UserAuthForm type="signup" />} />
 					</Route>

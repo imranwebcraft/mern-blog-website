@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { storeInSession } from '../common/session';
 import { UserContext } from '../App';
+import { authWithGoogle } from '../common/firebase';
 
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/; //for email
 let passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/; // for password
@@ -20,6 +21,10 @@ const UserAuthForm = ({ type }) => {
 		axios
 			.post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
 			.then((res) => {
+				console.log(res.data);
+				// if ((res.data.status = 'Incorrect Password')) {
+				// 	return toast.error('Incorrect Password');
+				// }
 				storeInSession('user', JSON.stringify(res.data));
 				setUserAuth(res.data);
 				navigate('/');
@@ -48,9 +53,6 @@ const UserAuthForm = ({ type }) => {
 		}
 
 		const { fullname, email, password } = formData;
-
-		console.log(formData);
-
 		// Validation
 
 		if (type == 'signup') {
@@ -58,7 +60,6 @@ const UserAuthForm = ({ type }) => {
 				return toast.error('full name must be at least 3 characters');
 			}
 		}
-
 		if (!email.length) {
 			return toast.error('Please provide an email address');
 		}
@@ -70,8 +71,20 @@ const UserAuthForm = ({ type }) => {
 				'Password must be at least 6-20 characters long with a numeric, 1 lowercase and 1 uppercase letter.'
 			);
 		}
-
 		userAuthThroughServer(serverRoute, formData);
+	};
+
+	const handleGoogleAuth = (e) => {
+		e.preventDefault();
+		authWithGoogle()
+			.then((user) => {
+				let serverRoute = '/google-auth';
+				const formData = { access_token: user.accessToken };
+				userAuthThroughServer(serverRoute, formData);
+			})
+			.catch((err) => {
+				console.log('Something went wrong');
+			});
 	};
 
 	return (
@@ -122,7 +135,10 @@ const UserAuthForm = ({ type }) => {
 						<hr className="w-1/2 border-black" />
 					</div>
 
-					<button className="btn-dark center flex items-center justify-center gap-2 w-[90%]">
+					<button
+						onClick={handleGoogleAuth}
+						className="btn-dark center flex items-center justify-center gap-2 w-[90%]"
+					>
 						<img src={googleIcon} alt="googleIcon" className="w-5" />
 						Continue with google
 					</button>
